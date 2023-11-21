@@ -1,0 +1,1347 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : cRTF
+ major_version : 28
+ minor_version : 0
+ type : 4
+ description : ""
+ subtype : 0
+class :
+ identifier : 0x3d65fce50d26a94e
+ internal_properties : CAAAAAgAAAB2/vstTMCJbS/hlxjFxirSqKvCUuv8YxgpWyl7S3iA
+ code_elements :
+  internal_properties : CAAAAAgAAAAxCthvCxS7UK0N4M+ZAkOEMATBOLK40+z9WMARk5VsFnbYsWg82G/fSewVVI/2gaqzJN4q4HNEu5DlT/XXOTlakVBSD7Oe2Bk=
+  type_code : 10
+  p_codes :
+   -
+     code : |1-
+      
+      cRTF is Class
+      	
+      PUBLIC
+      	
+      	m_sNameRTFControl is string					 
+      	m_sNameSearchControl is string
+      	
+      PRIVATE
+      	
+      	m_nCounter is int
+      	m_nPreviousPos is int
+      	m_nCurrentPos is int
+      	m_nOccurenceSubscript is int
+      	m_arrPosition is array fixed of 1000 int
+      	m_arrBeginningWordBold is array fixed of 1000 int
+      	m_arrEndWordBold is array fixed of 1000 int
+      	m_arrBeginningWordColor is array fixed of 1000 int
+      	m_arrEndWordColor is array fixed of 1000 int
+      	m_arrBeginningWordItalic is array fixed of 1000 int
+      	m_arrEndWordItalic is array fixed of 1000 int
+      	m_nStringLength is int
+      	m_bEndSearch is boolean 
+      END
+     type : 131072
+  procedures :
+   -
+     name : Constructor
+     procedure_id : 4424220271302060376
+     type_code : 27
+     code : |1+
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      // Constructor (<sRTFControl> is string, <sEditControl> is string)
+      //
+      // Parameters:
+      //	sRTFControl (ANSI string): <specify the role of sRTFControl>
+      //	sEditControl (ANSI string): <specify the role of sEditControl>
+      // Return value:
+      // 	None
+      //
+      PROCEDURE Constructor(LOCAL sRTFControl is string, LOCAL sInputControl is string)
+      
+      // Store the two controls used
+      :_ControlName(sRTFControl, sInputControl)
+     type : 589824
+   -
+     name : Destructor
+     procedure_id : 4424220270940039512
+     type_code : 28
+     code : |1+
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      // Destructor ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE Destructor()
+     type : 655360
+   -
+     name : _HighlightNextWord
+     procedure_id : 4424220269841656152
+     type_code : 12
+     code : |1-
+      // Summary: Highlights the next word
+      
+      PROCEDURE PRIVATE _HighlightNextWord()
+      
+      nPos is int
+      nFinalPos is int
+      nCurrentPosition is int
+      nCursorBegin is int
+      
+      IF :m_nOccurenceSubscript = 0 THEN
+      	
+      	// Case of a new search, the subscript was reset to zero
+      	RESULT :HighlightFormattedWord(<§$0002§>, 0)
+      	
+      ELSE
+      	
+      	// Position the cursor after the word found
+      	nCurrentPosition = :m_arrPosition[:m_nOccurenceSubscript]
+      	{:m_sNameRTFControl, indControl}..Cursor = nCurrentPosition 
+      	// Search for the word from the cursor position
+      	nPos = RTFSearch({:m_sNameRTFControl, indControl}, {:m_sNameSearchControl, indControl}) 
+      	
+      	// If the word was found
+      	IF nPos <> 0 THEN
+      		
+      		// The sought word is selected
+      		{:m_sNameRTFControl, indControl}..Cursor = nPos 
+      		nFinalPos = nPos + Length({:m_sNameSearchControl, indControl})
+      		{:m_sNameRTFControl, indControl}..CursorEnd = nFinalPos
+      		
+      		// New subscript in the table
+      		:m_nOccurenceSubscript = :m_nOccurenceSubscript + 1
+      		
+      		// Store this position
+      		:m_arrPosition[:m_nOccurenceSubscript] = nFinalPos
+      		
+      		RESULT True
+      		
+      	ELSE // if the word was not found
+      		
+      		// Select the last occurrence
+      		nCursorBegin = nCurrentPosition - Length({:m_sNameSearchControl, indControl})
+      		{:m_sNameRTFControl,indControl}..Cursor = nCursorBegin
+      		{:m_sNameRTFControl,indControl}..CursorEnd = nCurrentPosition
+      		Info(<§$0000§> + {:m_sNameSearchControl, indControl})	
+      		RESULT False
+      	END
+      END
+     type : 458752
+   -
+     name : HighlightPreviousWord
+     procedure_id : 4424220271127210328
+     type_code : 12
+     code : |1-
+      // Summary: Highlights the previous word
+      
+      PROCEDURE PRIVATE HighlightPreviousWord()
+      
+      PreviousPosition is int
+      CurrentPosition is int
+      
+      IF :m_nOccurenceSubscript >= 2 THEN
+      	
+      	// Retrieve the previous subscript
+      	:m_nOccurenceSubscript = :m_nOccurenceSubscript-1
+      	
+      	// Retrieve the cursor position for this subscript
+      	CurrentPosition = :m_arrPosition[:m_nOccurenceSubscript]
+      	
+      	// Position the cursor after the word that was previously found
+      	PreviousPosition =  CurrentPosition - Length({:m_sNameSearchControl, indControl})
+      	{:m_sNameRTFControl, indControl}..Cursor = PreviousPosition
+      	{:m_sNameRTFControl, indControl}..CursorEnd = CurrentPosition
+      	
+      ELSE
+      	
+      	IF :m_nOccurenceSubscript = 0 THEN
+      		// Case of a new search, the subscript was reset to zero
+      		RESULT :HighlightFormattedWord(<§$0002§>, 0)
+      	ELSE
+      		Info(<§$0001§> + {:m_sNameSearchControl, indControl}) 
+      	END
+      	
+      END
+      
+      RESULT True
+     type : 458752
+   -
+     name : HighlightFormattedWord
+     procedure_id : 4424220270960093528
+     type_code : 12
+     code : |1+
+      // Summary: Highlights a formatted word
+      // Syntax:
+      //[ <Result> = ] HighlightFormattedWord ([<sMode> is string [, <nColorVal> is int]])
+      //
+      // Parameters:
+      //	sMode (ANSI string): Search mode (Color or Bold).
+      //	nColorVal (integer - default value=0): Value of the selected color.
+      // Return value:
+      // 	boolean: True if the word was highlighted, False otherwise
+      //
+      PROCEDURE HighlightFormattedWord(LOCAL sMode is string = <§$0002§>, LOCAL nColorVal is int = 0)
+      
+      sStringToProcess is string = ""
+      sMessage is string = ""
+      nWidthRTFWord is int = 0
+      nStartPosRTFWord is int = 0
+      nEndPosWord is int = 0
+      bResult is boolean = False 
+      
+      // In case of a text search, check whether a sought word was specified
+      IF sMode = <§$0002§> AND {:m_sNameSearchControl, indControl} = "" THEN
+      	
+      	Error(<§$0003§>)
+      	ReturnToCapture({:m_sNameSearchControl, indControl}) 
+      	
+      ELSE
+      	
+      	// Analyze each word to find the first word written in bold or in the specified color
+      	WHILE bResult <> True
+      		
+      		sStringToProcess = :IsolateWord()
+      		
+      		IF sStringToProcess <> "" THEN
+      			
+      			// Search for this word in the RTF control and check the format
+      			SWITCH sMode
+      			
+      				CASE <§$0004§>
+      					// Check whether this word is written in bold
+      					IF :_CheckBold(sStringToProcess) THEN
+      						// The search was successful, store the start position
+      						:m_nOccurenceSubscript = 1
+      						:m_arrBeginningWordBold[:m_nOccurenceSubscript] = {:m_sNameRTFControl, indControl}..Cursor
+      						
+      						bResult = True
+      						// Browse the next words
+      						WHILE bResult
+      							sStringToProcess = :IsolateWord()
+      							bResult = :_CheckBold(sStringToProcess)
+      						END
+      						
+      						// Store the end position
+      						:m_arrEndWordBold[:m_nOccurenceSubscript] = {:m_sNameRTFControl, indControl}..Cursor - 1
+      						// Highlight all the words
+      						{:m_sNameRTFControl, indControl}..Cursor = :m_arrBeginningWordBold[1]
+      						{:m_sNameRTFControl, indControl}..CursorEnd = :m_arrEndWordBold[1]
+      						bResult = True		
+      					ELSE
+      						bResult = False
+      					END
+      					
+      				CASE <§$0005§>
+      					// Check whether this word is written in the specified color
+      					IF :_CheckColor(sStringToProcess, nColorVal) THEN
+      						
+      						// The search was successful, store the start position
+      						:m_nOccurenceSubscript = 1
+      						:m_arrBeginningWordColor[:m_nOccurenceSubscript] = {:m_sNameRTFControl, indControl}..Cursor
+      						
+      						bResult = True
+      						// Browse the next words
+      						WHILE bResult
+      							sStringToProcess = :IsolateWord()
+      							bResult = :_CheckColor(sStringToProcess, nColorVal)
+      						END
+      						
+      						// Store the end position
+      						:m_arrEndWordColor[:m_nOccurenceSubscript] = {:m_sNameRTFControl, indControl}..Cursor - 1
+      						// Highlight all the words
+      						{:m_sNameRTFControl, indControl}..Cursor = :m_arrBeginningWordColor[1]
+      						{:m_sNameRTFControl, indControl}..CursorEnd = :m_arrEndWordColor[1]
+      						bResult = True		
+      					ELSE
+      						bResult = False
+      					END
+      					
+      				CASE <§$0002§>
+      					
+      					// Initialize the current subscript
+      					:m_nOccurenceSubscript = 0
+      					
+      					// Position the cursor on the first character
+      					{:m_sNameRTFControl, indControl}..Cursor = 0 
+      					
+      					// Searches for the first occurrence of this word
+      					nStartPosRTFWord = RTFSearch(:m_sNameRTFControl, {:m_sNameSearchControl, indControl}) 
+      					
+      					// If the word was found
+      					IF nStartPosRTFWord <> 0 THEN
+      						
+      						// The sought word is selected
+      						{:m_sNameRTFControl, indControl}..Cursor = nStartPosRTFWord
+      						nEndPosWord = nStartPosRTFWord + Length({:m_sNameSearchControl, indControl})
+      						{:m_sNameRTFControl, indControl}..CursorEnd = nEndPosWord
+      						
+      						// First subscript in the spreadsheet
+      						:m_nOccurenceSubscript = 1
+      						// Store this first position
+      						:m_arrPosition[:m_nOccurenceSubscript] = nEndPosWord
+      						bResult = True
+      						
+      					ELSE
+      						bResult = False
+      					END
+      					
+      				CASE <§$0006§>
+      					
+      					// Check whether this word is written in bold
+      					IF :_CheckItalic(sStringToProcess) THEN
+      						//The search was successful, store the start position
+      						:m_nOccurenceSubscript = 1
+      						:m_arrBeginningWordItalic[:m_nOccurenceSubscript] = {:m_sNameRTFControl,indControl}..Cursor
+      						
+      						bResult = True
+      						// Browse the next words
+      						WHILE bResult
+      							sStringToProcess = :IsolateWord()
+      							bResult = :_CheckItalic(sStringToProcess)
+      						END
+      						
+      						// Store the end position
+      						:m_arrEndWordItalic[:m_nOccurenceSubscript] = {:m_sNameRTFControl,indControl}..Cursor - 1
+      						// Highlight all the words
+      						{:m_sNameRTFControl,indControl}..Cursor = :m_arrBeginningWordItalic[1]
+      						{:m_sNameRTFControl,indControl}..CursorEnd = :m_arrEndWordItalic[1]
+      						bResult = True		
+      					ELSE
+      						bResult = False
+      					END
+      					
+      				OTHER CASE 	// Possible error, the boolean is set to True to exit the loop
+      					bResult = True
+      			END
+      			
+      			
+      			// Display an information if no value is found
+      		ELSE
+      			
+      			SWITCH sMode
+      				CASE <§$0004§>
+      					sMessage = <§$0007§> 		
+      				CASE <§$0005§>
+      					sMessage = <§$0008§>
+      				CASE <§$0009§>
+      					sMessage = <§$000a§>+:m_sNameSearchControl
+      				CASE <§$0006§>
+      					sMessage = <§$000b§> 	
+      				OTHER CASE // No action	
+      					sMessage = <§$000c§>			
+      			END
+      			Info(sMessage)
+      			
+      			// Position the cursors
+      			{:m_sNameRTFControl,indControl}..Cursor = 1
+      			{:m_sNameRTFControl,indControl}..CursorEnd = {:m_sNameRTFControl,indControl}..Cursor
+      			BREAK
+      			
+      		END
+      	END
+      	bResult = False
+      END
+      bResult = False
+      
+      RESULT bResult
+     type : 458752
+   -
+     name : IsolateWord
+     procedure_id : 4424220269740992856
+     type_code : 12
+     code : |1-
+      // Summary: This procedure is used to isolate each word found in the RTF control in order to perform checks (bold or color for instance)
+      
+      PROCEDURE PRIVATE IsolateWord()
+      
+      sContentsTXT is string 	= ""
+      sWordFound is string 	= ""
+      nWordWidth is int	= 0
+      nStartPosWord is int 	= 0
+      nEndPosWord is int	= 0
+      
+      
+      // Retrieve the text found in the RTF control
+      sContentsTXT = RTFToText({:m_sNameRTFControl, indControl})
+      sContentsTXT = NoSpace(sContentsTXT)
+      sContentsTXT = " " + sContentsTXT + " "
+      
+      // Delete the successive spaces
+      WHILE Position(sContentsTXT, "  ") <> 0
+      	sContentsTXT = Replace(sContentsTXT, "  ", " ")	
+      END
+      
+      // Delete the TAB and CR characters
+      sContentsTXT = Replace(sContentsTXT, CR, " ")
+      sContentsTXT = Replace(sContentsTXT, TAB, " ")
+      
+      // Search for the first space
+      nStartPosWord = Position(sContentsTXT, " ", :m_nCurrentPos)
+      
+      // Shift from one (width of the space)
+      nStartPosWord = nStartPosWord + 1
+      :m_nCurrentPos = nStartPosWord + 1
+      
+      // Search for the second space
+      nEndPosWord = Position(sContentsTXT, " ", :m_nCurrentPos)
+      nWordWidth = nEndPosWord - nStartPosWord
+      
+      // Isolate the word found
+      sWordFound = Middle(sContentsTXT, nStartPosWord, nWordWidth)
+      
+      // Delete the possible spaces to the right or to the left
+      sWordFound = NoSpace(sWordFound)
+      
+      // Analyze the last character to define whether it is a ', .!? )'
+      IF sWordFound <> "?" THEN
+      	IF sWordFound <> "!" THEN
+      		IF sWordFound <> "." THEN
+      			IF sWordFound <> "," THEN
+      				IF sWordFound <> "#" THEN
+      					IF sWordFound <> "'" THEN
+      						WHILE :_IsolateCharacter(sWordFound) = True
+      							sWordFound = Middle(sWordFound, 1, Length(sWordFound)-1)
+      						END
+      					END
+      				END
+      			END
+      		END
+      	END
+      END
+      
+      // Returns the word found
+      RESULT sWordFound
+     type : 458752
+   -
+     name : InitPointers
+     procedure_id : 4424220270916643160
+     type_code : 12
+     code : |1-
+      // Summary: Initialize the different pointers when a new search is started
+      PROCEDURE InitPointers()
+      
+      :m_nCurrentPos = 0
+      :m_nPreviousPos = 0
+      :m_nOccurenceSubscript = 0
+      {:m_sNameRTFControl, indControl}..Cursor = 0
+      :m_nCounter = 0
+      :m_nStringLength = Length(RTFToText({:m_sNameRTFControl, indControl}))
+      :m_bEndSearch = False
+      
+      // Analyze the number of rows
+      :_CountSpecificRTFCharact()
+     type : 458752
+   -
+     name : _CheckBold
+     procedure_id : 4424220270920116568
+     type_code : 12
+     code : |1+
+      // Summary: Checks whether a word is written in bold in the text
+      // Syntax:
+      //[ <Result> = ] _CheckBold (<sBoldString> is string)
+      //
+      // Parameters:
+      //	sBoldString (ANSI string): Word to check
+      // Return value:
+      // 	boolean: True if the word is found and it it is bold, False otherwise
+      //
+      
+      PROCEDURE PRIVATE _CheckBold(LOCAL sBoldString is string)
+      
+      nWidthRTFWord is int = 0
+      nStartPosRTFWord is int = 0
+      bResultOK is boolean = False
+      
+      
+      // Search for the word in the RTF control
+      nStartPosRTFWord = RTFSearch({:m_sNameRTFControl, indControl}, sBoldString)
+      // The word is found
+      IF nStartPosRTFWord <> 0 THEN
+      	
+      	// The sought word is selected
+      	{:m_sNameRTFControl,indControl}..Cursor = nStartPosRTFWord
+      	{:m_sNameRTFControl,indControl}..CursorEnd = nStartPosRTFWord + Length(sBoldString)
+      	
+      	// Check whether the word is written in bold or not
+      	IF RTFSelection({:m_sNameRTFControl, indControl}, rtfBold) THEN
+      		bResultOK = True
+      	ELSE
+      		//This word is not written in bold.
+      		bResultOK = False
+      	END
+      	
+      ELSE
+      	// This word is not found in the RTF control
+      	// Programming error probably caused by a specific character.
+      	bResultOK = True
+      END 
+      
+      RESULT bResultOK
+     type : 458752
+   -
+     name : _CheckColor
+     procedure_id : 4424220270987553112
+     type_code : 12
+     code : |1+
+      // Summary: Checks whether a word is written in color in the text
+      // Syntax:
+      //[ <Result> = ] _CheckColor (<sBoldString> is string, <nColorVal> is int)
+      //
+      // Parameters:
+      //	sBoldString (ANSI string): Word to check
+      //	nColorVal (integer): color of this word
+      // Return value:
+      // 	boolean: True if the word is found and if it has the proper color, False otherwise
+      //
+      PROCEDURE PRIVATE _CheckColor(LOCAL sBoldString is string, LOCAL nColorVal is int)
+      
+      nWidthRTFWord is int = 0
+      nStartPosRTFWord is int = 0
+      bResultOK is boolean = False
+      
+      
+      // Search for the word in the RTF control
+      nStartPosRTFWord = RTFSearch({:m_sNameRTFControl, indControl}, sBoldString)
+      IF nStartPosRTFWord <> 0 THEN
+      	
+      	// The sought word is selected
+      	{:m_sNameRTFControl,indControl}..Cursor = nStartPosRTFWord
+      	{:m_sNameRTFControl,indControl}..CursorEnd = nStartPosRTFWord + Length(sBoldString)
+      	
+      	// Check whether the word is written in the specified color
+      	IF RTFSelection({:m_sNameRTFControl, indControl}, rtfColor) = nColorVal THEN
+      		bResultOK = True
+      	ELSE
+      		bResultOK = False
+      	END
+      ELSE
+      	bResultOK = True
+      END 
+      
+      RESULT bResultOK
+     type : 458752
+   -
+     name : _HighlightNextBoldWord
+     procedure_id : 4424220269682141528
+     type_code : 12
+     code : |1-
+      // Summary: Highlights the word written in bold following the current selection
+      // Syntax:
+      //[ <Result> = ] _HighlightNextBoldWord ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	boolean: True if the next word was found, False otherwise
+      //
+      PROCEDURE PRIVATE _HighlightNextBoldWord()
+      
+      bPrevWord is boolean = False // The previous word is written in bold
+      bResult is boolean
+      sBoldString is string = ""
+      nWidthRTFWord is int = 0
+      nStartPosRTFWord is int = 0
+      nEndPosWord is int = 0
+      
+      
+      IF :m_nOccurenceSubscript = 0 THEN
+      	
+      	:InitPointers()
+      	RESULT :HighlightFormattedWord(<§$0004§>)
+      	
+      ELSE
+      	
+      	IF :m_bEndSearch = True THEN
+      		Info(<§$0015§>)
+      	ELSE
+      		
+      		// Position the cursor at the current position in the RTF
+      		{:m_sNameRTFControl, indControl}..Cursor = :m_arrEndWordBold[:m_nOccurenceSubscript]
+      		// Position the cursor at the current position in the TXT
+      		:m_nCurrentPos = :m_arrEndWordBold[:m_nOccurenceSubscript]
+      		
+      		// Analyze each word to find the first word written in bold or in the specified color
+      		WHILE bResult <> True
+      			
+      			// Position the cursor again
+      			sBoldString = :IsolateWord()
+      			// Case of a space found
+      			WHILE sBoldString = ""
+      				sBoldString = :IsolateWord()	
+      			END
+      			
+      			IF sBoldString <> EOT THEN 
+      				// Check whether this word is written in bold
+      				IF :_CheckBold(sBoldString) THEN
+      					
+      					// The word found is written in bold, search for the next word
+      					// The current word becomes the previous word and it is written in bold
+      					bPrevWord = True
+      					
+      					// The search was successful, store the start position
+      					:m_nOccurenceSubscript = :m_nOccurenceSubscript + 1
+      					:m_arrBeginningWordBold[:m_nOccurenceSubscript] = {:m_sNameRTFControl, indControl}..Cursor
+      					
+      					bResult = True
+      					// Browse the next words
+      					WHILE bResult
+      						
+      						sBoldString = :IsolateWord()
+      						//Case of a space found
+      						WHILE sBoldString = ""
+      							sBoldString = :IsolateWord()	
+      						END
+      						
+      						IF sBoldString = EOT THEN 
+      							// Select the last occurrence found
+      							IF bResult = True THEN :m_arrEndWordBold[:m_nOccurenceSubscript] = :m_nStringLength - 1
+      							{:m_sNameRTFControl, indControl}..Cursor = :m_arrBeginningWordBold[:m_nOccurenceSubscript]
+      							{:m_sNameRTFControl, indControl}..CursorEnd = :m_arrEndWordBold[:m_nOccurenceSubscript]
+      							:m_bEndSearch = True
+      							BREAK
+      						ELSE
+      							// Check whether this word is written in bold
+      							bResult = :_CheckBold(sBoldString)
+      							IF bResult THEN 
+      								bPrevWord = True
+      							ELSE
+      								bPrevWord = False	
+      							END
+      						END
+      					END
+      					// Store the end position
+      					IF bPrevWord = False THEN
+      						:m_arrEndWordBold[:m_nOccurenceSubscript] = {:m_sNameRTFControl, indControl}..Cursor - 1
+      					ELSE
+      						:m_arrEndWordBold[:m_nOccurenceSubscript] = :m_nCurrentPos - :m_nCounter
+      					END
+      					// Highlight all the words
+      					{:m_sNameRTFControl, indControl}..Cursor = :m_arrBeginningWordBold[:m_nOccurenceSubscript]
+      					{:m_sNameRTFControl, indControl}..CursorEnd = :m_arrEndWordBold[:m_nOccurenceSubscript]
+      					
+      					//The search was successful
+      					bResult = True
+      					
+      				ELSE
+      					// The word found is not written in bold, it becomes the previous word not written in bold.
+      					bPrevWord = False
+      					bResult = False
+      				END
+      			ELSE
+      				// Select the last occurrence found
+      				bResult = True
+      				//Highlight all the words
+      				{:m_sNameRTFControl, indControl}..Cursor = :m_arrBeginningWordBold[:m_nOccurenceSubscript]
+      				{:m_sNameRTFControl, indControl}..CursorEnd = :m_arrEndWordBold[:m_nOccurenceSubscript]
+      				Info(<§$0015§>)
+      			END
+      		END
+      		bResult = False
+      	END
+      END
+      
+      RESULT bResult
+     type : 458752
+   -
+     name : _HighlightPreviousBoldWord
+     procedure_id : 4424220269851748696
+     type_code : 12
+     code : |1-
+      // Summary: Highlights the word written in bold preceding the current selection
+      // Syntax:
+      //[ <Result> = ] _HighlightPreviousBoldWord ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	boolean: True if the previous word was found, False otherwise
+      //
+      PROCEDURE PRIVATE _HighlightPreviousBoldWord()
+      
+      
+      PreviousPosition is int
+      CurrentPosition is int
+      :m_bEndSearch = False
+      
+      
+      IF :m_nOccurenceSubscript >= 2 THEN
+      	
+      	//Retrieve the previous subscript
+      	:m_nOccurenceSubscript = :m_nOccurenceSubscript-1
+      	
+      	//Retrieve the cursor position for this subscript
+      	CurrentPosition = :m_arrBeginningWordBold[:m_nOccurenceSubscript]
+      	//Position the cursor after the word that was previously found
+      	PreviousPosition = :m_arrEndWordBold[:m_nOccurenceSubscript]
+      	
+      	{:m_sNameRTFControl, indControl}..Cursor = CurrentPosition
+      	{:m_sNameRTFControl, indControl}..CursorEnd = PreviousPosition
+      	
+      ELSE
+      	
+      	IF :m_nOccurenceSubscript = 0 THEN
+      		//Case of a new search, the subscript was reset to zero
+      		RESULT :HighlightFormattedWord(<§$0004§>)
+      	ELSE
+      		Info(<§$0016§>) 
+      	END
+      	
+      END
+      
+      RESULT True
+     type : 458752
+   -
+     name : _HighlightNextColorWord
+     internal_properties : CAAAAAgAAADQsU+88l/iLF2XfUFUP/3/levSRZ2s2QbcvrqrbblfFDDAk0EK2v/BhLUhqkfb735W8OIqUcT1DuDgWX2EdVxAbGypx3FXdbSKb73Yo5h8gHTNq5NKTa3tEh9Q3MuCBg/MZEJyudEDMfnfAnEr48rBQFPMFqu1XHhBmomaI0Q=
+     procedure_id : 4424220270611769688
+     type_code : 12
+     code : |1-
+      // Summary: Highlights the word written in color following the current selection
+      // Syntax:
+      //[ <Result> = ] _HighlightNextColorWord (<nSoughtColor> is int)
+      //
+      // Parameters:
+      //	nSoughtColor (integer): Sought color
+      // Return value:
+      // 	boolean: True if the next word was found, False otherwise
+      //
+      PROCEDURE PRIVATE _HighlightNextColorWord(LOCAL nSoughtColor is int)
+      
+      sBoldString is string = ""
+      nWidthRTFWord is int = 0
+      nStartPosRTFWord is int = 0
+      nEndPosWord is int = 0
+      bResult is boolean = False 
+      bPrevWord is boolean	= False // The previous word is written in bold
+      
+      
+      IF :m_nOccurenceSubscript = 0 THEN
+      	:InitPointers()
+      	RESULT :HighlightFormattedWord(<§$0005§>, nSoughtColor)
+      ELSE
+      	
+      	IF :m_bEndSearch = True THEN
+      		Info(<§$0017§>)
+      	ELSE
+      		
+      		// Reposition the cursor at the current position in the RTF
+      		{:m_sNameRTFControl, indControl}..Cursor = :m_arrEndWordColor[:m_nOccurenceSubscript]
+      		// Reposition the cursor at the current position in the TXT
+      		:m_nCurrentPos = :m_arrEndWordColor[:m_nOccurenceSubscript]
+      		
+      		// Analyze each word to find the first word written in bold or in the specified color
+      		WHILE bResult <> True
+      			
+      			// Position the cursor again
+      			sBoldString = :IsolateWord()
+      			// Case of a space found
+      			WHILE sBoldString = ""
+      				sBoldString = :IsolateWord()	
+      			END
+      			
+      			IF sBoldString <> EOT THEN 
+      				// Check whether this word is written in bold
+      				IF :_CheckColor(sBoldString,nSoughtColor) THEN
+      					
+      					// The word found is written in the specified color, search for the next word
+      					// The current word becomes the previous word and it is written in this color
+      					bPrevWord = True
+      					
+      					// The search was successful, store the start position
+      					:m_nOccurenceSubscript = :m_nOccurenceSubscript + 1
+      					:m_arrBeginningWordColor[:m_nOccurenceSubscript] = {:m_sNameRTFControl, indControl}..Cursor
+      					bResult = True
+      					
+      					// Browse the next words
+      					WHILE bResult
+      						sBoldString = :IsolateWord()
+      						IF sBoldString = EOT THEN 
+      							// Select the last occurrence found
+      							IF bResult = True THEN :m_arrEndWordColor[:m_nOccurenceSubscript] = :m_nStringLength - 1
+      							{:m_sNameRTFControl, indControl}..Cursor = :m_arrBeginningWordColor[:m_nOccurenceSubscript]
+      							{:m_sNameRTFControl, indControl}..CursorEnd = :m_arrEndWordColor[:m_nOccurenceSubscript]
+      							:m_bEndSearch = True
+      							BREAK
+      						ELSE
+      							// Check whether this word is written in bold
+      							bResult = :_CheckColor(sBoldString, nSoughtColor)	
+      							IF bResult THEN 
+      								bPrevWord = True
+      							ELSE
+      								bPrevWord = False	
+      							END
+      						END
+      					END
+      					// Store the end position
+      					IF bPrevWord = False THEN
+      						:m_arrEndWordColor[:m_nOccurenceSubscript] = {:m_sNameRTFControl, indControl}..Cursor - 1
+      					ELSE
+      						:m_arrEndWordColor[:m_nOccurenceSubscript] = :m_nCurrentPos - :m_nCounter
+      					END
+      					
+      					// Highlight all the words
+      					{:m_sNameRTFControl, indControl}..Cursor = :m_arrBeginningWordColor[:m_nOccurenceSubscript]
+      					{:m_sNameRTFControl, indControl}..CursorEnd = :m_arrEndWordColor[:m_nOccurenceSubscript]
+      					
+      					bResult = True
+      					
+      				ELSE
+      					
+      					// The word found is not written in the specified color, it becomes the previous word in a wrong color.
+      					bPrevWord 	= False
+      					bResult = False
+      				END
+      			ELSE
+      				// The search was successful
+      				bResult = True
+      				
+      				// Highlight all the words
+      				{:m_sNameRTFControl,indControl}..Cursor = :m_arrBeginningWordColor[:m_nOccurenceSubscript]
+      				{:m_sNameRTFControl,indControl}..CursorEnd = :m_arrEndWordColor[:m_nOccurenceSubscript]
+      				Info(<§$0017§>)
+      			END
+      			
+      		END
+      		
+      		bResult = False
+      	END
+      	
+      END
+      
+      RESULT bResult
+     type : 458752
+   -
+     name : _HighlightPreviousColorWord
+     procedure_id : 4424220269741910360
+     type_code : 12
+     code : |1-
+      // Summary: Highlights the word written in color preceding the current selection
+      // Syntax:
+      //[ <Result> = ] _HighlightPreviousColorWord (<nColorVal> is int)
+      //
+      // Parameters:
+      //	nColorVal (integer): Sought color
+      // Return value:
+      // 	boolean: True if the previous word was found, False otherwise
+      //
+      PROCEDURE PRIVATE _HighlightPreviousColorWord(LOCAL nColorVal is int)
+      
+      PreviousPosition is int
+      CurrentPosition is int
+      :m_bEndSearch = False
+      
+      
+      IF :m_nOccurenceSubscript >= 2 THEN
+      	
+      	// Retrieve the previous subscript
+      	:m_nOccurenceSubscript = :m_nOccurenceSubscript-1
+      	
+      	// Retrieve the cursor position for this subscript
+      	CurrentPosition = :m_arrBeginningWordColor[:m_nOccurenceSubscript]
+      	// Position the cursor after the word that was previously found
+      	PreviousPosition = :m_arrEndWordColor[:m_nOccurenceSubscript]
+      	
+      	{:m_sNameRTFControl, indControl}..Cursor = CurrentPosition
+      	{:m_sNameRTFControl, indControl}..CursorEnd = PreviousPosition
+      	
+      ELSE
+      	
+      	IF :m_nOccurenceSubscript = 0 THEN
+      		// Case of a new search, the subscript was reset to zero
+      		RESULT :HighlightFormattedWord(<§$0005§>, nColorVal)
+      	ELSE
+      		Info(<§$0016§>) 
+      	END
+      	
+      END
+      RESULT True
+     type : 458752
+   -
+     name : _ControlName
+     procedure_id : 4424220270724688216
+     type_code : 12
+     code : |1-
+      // Summary: Defines the name of the RTF control and the name of the search control
+      // Syntax:
+      //_ControlName (<sRTFControl> is string, <sEditControl> is string)
+      //
+      // Parameters:
+      //	sRTFControl (ANSI string): Name of the RTF control
+      //	sEditControl (ANSI string): Name of the search control
+      // Return value:
+      // 	None
+      //
+      PROCEDURE PRIVATE _ControlName(LOCAL sRTFControl is string, LOCAL sInputControl is string)
+      
+      // Store the name of the RTF control and the name of the search control
+      :m_sNameRTFControl = sRTFControl
+      :m_sNameSearchControl = sInputControl
+     type : 458752
+   -
+     name : _IsolateCharacter
+     procedure_id : 4424220270214687064
+     type_code : 12
+     code : |1-
+      // Summary: Isolates the last character in a word to process
+      // Syntax:
+      //[ <Result> = ] _IsolateCharacter (<sWordToProcess> is string)
+      //
+      // Parameters:
+      //	sWordToProcess (ANSI string): Word to process
+      // Return value:
+      // 	boolean: True if it is a "special" character (. ,?! ) # empty), False otherwise
+      //
+      
+      PROCEDURE PRIVATE _IsolateCharacter(LOCAL sWordToProcess is string)
+      
+      sCharact is string
+      nSize is int
+      
+      
+      nSize = Length(sWordToProcess) 
+      sCharact = Middle(sWordToProcess, nSize)
+      
+      IF sCharact IN (".",",","?","!",")", "#","'") THEN
+      	RESULT True
+      ELSE // No action	 
+      	RESULT False
+      END
+     type : 458752
+   -
+     name : _CountSpecificRTFCharact
+     procedure_id : 4424220270682351960
+     type_code : 12
+     code : |1-
+      // Summary: Counts the number of specific RTF characters (\tab)
+      
+      PROCEDURE PRIVATE _CountSpecificRTFCharact()
+      
+      sContentsTXT is string = ""
+      nCRPos is int
+      
+      
+      // Retrieve the text found in the RTF control
+      sContentsTXT = {:m_sNameRTFControl, indControl}
+      // Copies the content of the control into the clipboard
+      ToClipboard(sContentsTXT)
+      
+      nCRPos = Position(sContentsTXT, "\tab")
+      WHILE nCRPos <> 0
+      	:m_nCounter = :m_nCounter + 1
+      	sContentsTXT = Right(sContentsTXT, Length(sContentsTXT)-nCRPos)	
+      	nCRPos = Position(sContentsTXT, "\tab")
+      END
+     type : 458752
+   -
+     name : HighlightNextFormattedWord
+     internal_properties : CAAAAAgAAADoOmyGP3ztvkgDBPbqjFazAngvsFFbgWpLCB6l4X0YTNL1Y47Id+/Bmc3XRg+WVBYTfPoZ1aZxrbzIQ+wjwMjKWRk3Oe4TQFff7rt343Y6LJxMG/2e7WdHutt0Ta4JIpwbr9dLCZIDa8CngDA922enARKXJKuUGnDOl8QNbpfYvDKLsgxCNRjCvB2h3bFelQHVmVh1zQ==
+     procedure_id : 4594969787329978756
+     type_code : 12
+     code : |1-
+      // Summary: Highlights the formatted word following the current selection
+      // Syntax:
+      //[ <Result> = ] HighlightNextFormattedWord ([<sType> is string [, <nColorVal> is int]])
+      //
+      // Parameters:
+      //	sType (ANSI string - default value=""): Text, Color, Bold or Italic
+      //	nColorVal (integer - default value=0): Color of the text to find
+      // Return value:
+      // 	boolean: True if the next word is highlighted, False otherwise
+      
+      PROCEDURE HighlightNextFormattedWord(LOCAL sType is string = "", LOCAL nColorVal is int = 0)
+      
+      // Depending on the type of element to find and to highlight, call the corresponding procedure for highlighting the next word
+      SWITCH sType
+      	// Text
+      	CASE <§$0002§> : RESULT :_HighlightNextWord()
+      	// Color
+      	CASE <§$0005§> : RESULT :_HighlightNextColorWord(nColorVal)
+      	// Bold
+      	CASE <§$0004§> : RESULT :_HighlightNextBoldWord()
+      	// Italic
+      	CASE <§$0006§> : RESULT :_HighlightNextItalicWord()
+      	// Unknown case: no action
+      	OTHER CASE : RESULT False
+      END
+     type : 458752
+   -
+     name : HighlightPreviousFormattedWord
+     internal_properties : CAAAAAgAAADoOmyGP3ztvkgDBPbqjFazAngvsFFbgWpLCB6l4X0YTNL1Y47Id+/Bmc3XRg+WVBYTfPoZ1aZxrbzIQ+wjwMjKWRk3Oe4TQFff7rt343Y6LJxMG/2e7WdHutt0Ta4JIpwbr9dLCZIDa8CngDA922enARKXJKuUGnDOl8QNbpfYvDKLsgxCNRjCvB2h3bFelQHVmVh1zQ==
+     procedure_id : 4594969924893744357
+     type_code : 12
+     code : |1-
+      // Summary: Highlights the formatted word preceding the current selection
+      // Syntax:
+      //[ <Result> = ] HighlightPreviousFormattedWSord ([<sType> is string [, <nColorVal> is int]])
+      //
+      // Parameters:
+      //	sType (ANSI string - default value=""): Text, Color, Bold or Italic
+      //	nColorVal (integer - default value=0): Color of the text to find
+      // Return value:
+      // 	boolean: True if the previous word is highlighted, False otherwise
+      
+      PROCEDURE HighlightPreviousFormattedWord(LOCAL sType is string = "", LOCAL nColorVal is int = 0)
+      
+      // Depending on the type of element to find and to highlight, call the corresponding procedure for highlighting the next word
+      SWITCH sType
+      	// Text
+      	CASE <§$0002§> : RESULT :HighlightPreviousWord()
+      	// Color
+      	CASE <§$0005§> : RESULT :_HighlightPreviousColorWord(nColorVal)
+      	// Bold
+      	CASE <§$0004§> : RESULT :_HighlightPreviousBoldWord()
+      	// Italic
+      	CASE <§$0006§> : RESULT :HighlightPreviousItalicWord()
+      	// Unknown case: no action
+      	OTHER CASE : RESULT False
+      END
+     type : 458752
+   -
+     name : _CheckItalic
+     procedure_id : 4595014648233459578
+     type_code : 12
+     code : |1-
+      // Summary: Checks whether a string is written in italic or not 
+      // Syntax:
+      //[ <Result> = ] _CheckItalic (<sItalicString> is string)
+      //
+      // Parameters:
+      //	sItalicString (ANSI string): string to check
+      // Return value:
+      // 	boolean: True if the string is in italic, False otherwise
+      //
+      
+      PROCEDURE PRIVATE _CheckItalic(LOCAL sItalicString is string)
+      
+      nWidthRTFWord is int = 0
+      nStartPosRTFWord is int = 0
+      bResultOK is boolean = False
+      
+      
+      // Search for the word in the RTF control
+      nStartPosRTFWord = RTFSearch({:m_sNameRTFControl,indControl}, sItalicString)
+      
+      IF nStartPosRTFWord <> 0 THEN
+      	
+      	// The sought word is selected
+      	{:m_sNameRTFControl,indControl}..Cursor = nStartPosRTFWord
+      	{:m_sNameRTFControl,indControl}..CursorEnd = nStartPosRTFWord + Length(sItalicString)
+      	
+      	// Check whether the word is written in bold or not
+      	IF RTFSelection({:m_sNameRTFControl, indControl}, rtfItalic) THEN
+      		bResultOK = True
+      	ELSE
+      		// This word is not written in bold.
+      		bResultOK = False
+      	END
+      	
+      ELSE
+      	// This word is not found in the RTF control
+      	// Programming error probably caused by a specific character.
+      	bResultOK = True
+      END 
+      
+      RESULT bResultOK
+     type : 458752
+   -
+     name : _HighlightNextItalicWord
+     procedure_id : 4595016117351561328
+     type_code : 12
+     code : |1-
+      // Summary: Highlights the word written in italic following the current selection
+      // Syntax:
+      //[ <Result> = ] _HighlightNextItalicWord ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	boolean: True if the next word was highlighted, False otherwise
+      //
+      PROCEDURE PRIVATE _HighlightNextItalicWord()
+      
+      bPrevWord is boolean = False // The previous word is written in bold
+      bResult is boolean
+      sItalicString is string = ""
+      nWidthRTFWord is int = 0
+      nStartPosRTFWord is int = 0
+      nEndPosWord is int = 0
+      
+      
+      IF :m_nOccurenceSubscript = 0 THEN
+      	:InitPointers()
+      	RESULT :HighlightFormattedWord(<§$0006§>)
+      ELSE
+      	
+      	IF :m_bEndSearch = True THEN
+      		Info(<§$001a§>)
+      	ELSE
+      		
+      		// Position the cursor at the current position in the RTF
+      		{:m_sNameRTFControl, indControl}..Cursor = :m_arrEndWordItalic[:m_nOccurenceSubscript]
+      		// Position the cursor at the current position in the TXT
+      		:m_nCurrentPos = :m_arrEndWordItalic[:m_nOccurenceSubscript]
+      		
+      		// Analyze each word in order to find the first 
+      		// word written in italic or in the specified color
+      		WHILE bResult <> True
+      			
+      			// Position the cursor again
+      			sItalicString = :IsolateWord()
+      			// Case of a space found
+      			WHILE sItalicString = ""
+      				sItalicString = :IsolateWord()	
+      			END
+      			
+      			IF sItalicString <> EOT THEN 
+      				// Check whether this word is written in bold
+      				IF :_CheckItalic(sItalicString) THEN
+      					
+      					// The word found is written in italic, search for the next word
+      					// The current word becomes the previous word and it is written in bold
+      					bPrevWord = True
+      					
+      					// The search was successful, store the start position
+      					:m_nOccurenceSubscript = :m_nOccurenceSubscript + 1
+      					:m_arrBeginningWordItalic[:m_nOccurenceSubscript] = {:m_sNameRTFControl, indControl}..Cursor
+      					
+      					bResult = True
+      					// Browse the next words
+      					WHILE bResult
+      						
+      						sItalicString = :IsolateWord()
+      						// Case of a space found
+      						WHILE sItalicString = ""
+      							sItalicString = :IsolateWord()	
+      						END
+      						
+      						IF sItalicString = EOT THEN 
+      							// Select the last occurrence found
+      							IF bResult = True THEN :m_arrEndWordItalic[:m_nOccurenceSubscript] = :m_nStringLength - 1
+      							{:m_sNameRTFControl, indControl}..Cursor = :m_arrBeginningWordItalic[:m_nOccurenceSubscript]
+      							{:m_sNameRTFControl, indControl}..CursorEnd = :m_arrEndWordItalic[:m_nOccurenceSubscript]
+      							:m_bEndSearch = True
+      							BREAK
+      						ELSE
+      							// Check whether this word is written in bold
+      							bResult = :_CheckItalic(sItalicString)
+      							IF bResult THEN 
+      								bPrevWord = True
+      							ELSE
+      								bPrevWord = False	
+      							END
+      						END
+      					END
+      					// Store the end position
+      					IF bPrevWord = False THEN
+      						:m_arrEndWordItalic[:m_nOccurenceSubscript] = {:m_sNameRTFControl, indControl}..Cursor - 1
+      					ELSE
+      						:m_arrEndWordItalic[:m_nOccurenceSubscript] = :m_nCurrentPos - :m_nCounter
+      					END
+      					//Highlight all the words
+      					{:m_sNameRTFControl, indControl}..Cursor = :m_arrBeginningWordItalic[:m_nOccurenceSubscript]
+      					{:m_sNameRTFControl, indControl}..CursorEnd = :m_arrEndWordItalic[:m_nOccurenceSubscript]
+      					
+      					//The search was successful
+      					bResult = True
+      					
+      				ELSE
+      					//The word found is not written in italic, it becomes the previous word not written in italic.
+      					bPrevWord 	= False
+      					bResult 	= False
+      				END
+      			ELSE
+      				
+      				// Select the last occurrence found
+      				bResult = True
+      				// Highlight all the words
+      				{:m_sNameRTFControl, indControl}..Cursor = :m_arrBeginningWordItalic[:m_nOccurenceSubscript]
+      				{:m_sNameRTFControl, indControl}..CursorEnd = :m_arrEndWordItalic[:m_nOccurenceSubscript]
+      				Info(<§$001b§>)
+      				
+      			END
+      			
+      		END
+      		
+      		bResult = False
+      	END
+      	
+      END
+      
+      RESULT bResult
+     type : 458752
+   -
+     name : HighlightPreviousItalicWord
+     procedure_id : 4595016190883625422
+     type_code : 12
+     code : |1-
+      // Summary: Highlights the word written in italic preceding the current selection
+      // Syntax:
+      // [ <Result> = ] HighlightPreviousItalicWord ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	boolean: True if the previous word was highlighted, False otherwise
+      //
+      
+      PROCEDURE PRIVATE HighlightPreviousItalicWord()
+      
+      PreviousPosition is int
+      CurrentPosition is int
+      :m_bEndSearch = False
+      
+      
+      IF :m_nOccurenceSubscript >= 2 THEN
+      	
+      	// Retrieve the previous subscript
+      	:m_nOccurenceSubscript = :m_nOccurenceSubscript-1
+      	
+      	// Retrieve the cursor position for this subscript
+      	CurrentPosition = :m_arrBeginningWordItalic[:m_nOccurenceSubscript]
+      	//Position the cursor after the word that was previously found
+      	PreviousPosition = :m_arrEndWordItalic[:m_nOccurenceSubscript]
+      	
+      	{:m_sNameRTFControl, indControl}..Cursor = CurrentPosition
+      	{:m_sNameRTFControl, indControl}..CursorEnd = PreviousPosition
+      	
+      ELSE
+      	
+      	IF :m_nOccurenceSubscript = 0 THEN
+      		// Case of a new search, the subscript was reset to zero
+      		RESULT :HighlightFormattedWord(<§$0006§>)
+      	ELSE
+      		Info(<§$0016§>) 
+      	END
+      	
+      END
+      
+      RESULT True
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+resources :
+ string_res :
+  identifier : 0x3cab35834ebbcf26
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : "there is no other occurrence of: "
+     index : 0
+   -
+     text :
+      en-GB : "You are positioned on the first occurrence of: "
+     index : 1
+   -
+     text :
+      en-GB : Text
+     index : 2
+   -
+     text :
+      en-GB : Enter the sought word
+     index : 3
+   -
+     text :
+      en-GB : Bold
+     index : 4
+   -
+     text :
+      en-GB : Color
+     index : 5
+   -
+     text :
+      en-GB : Italic
+     index : 6
+   -
+     text :
+      en-GB : This text contains no words written in bold
+     index : 7
+   -
+     text :
+      en-GB : This text contains no words written in the specified color
+     index : 8
+   -
+     text :
+      en-GB : text
+     index : 9
+   -
+     text :
+      en-GB : "No occurrence of: "
+     index : 10
+   -
+     text :
+      en-GB : This text contains no words written in italic
+     index : 11
+   -
+     text :
+      en-GB : This text contains no words matching the search
+     index : 12
+   -
+     text :
+      en-GB : " "
+     index : 13
+   -
+     text :
+      en-GB : "  "
+     index : 14
+   -
+     text :
+      en-GB : "?"
+     index : 15
+   -
+     text :
+      en-GB : "!"
+     index : 16
+   -
+     text :
+      en-GB : "."
+     index : 17
+   -
+     text :
+      en-GB : ","
+     index : 18
+   -
+     text :
+      en-GB : "#"
+     index : 19
+   -
+     text :
+      en-GB : "'"
+     index : 20
+   -
+     text :
+      en-GB : no other string written in bold
+     index : 21
+   -
+     text :
+      en-GB : You are positioned on the first occurrence found
+     index : 22
+   -
+     text :
+      en-GB : No other character string written in this color
+     index : 23
+   -
+     text :
+      en-GB : )
+     index : 24
+   -
+     text :
+      en-GB : \tab
+     index : 25
+   -
+     text :
+      en-GB : No other string written in italic
+     index : 26
+   -
+     text :
+      en-GB : no other string written in italic
+     index : 27
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

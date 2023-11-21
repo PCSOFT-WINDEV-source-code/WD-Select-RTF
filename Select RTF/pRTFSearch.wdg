@@ -1,0 +1,202 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pRTFSearch
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x186e65e00160e730
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  internal_properties : CAAAAAgAAACo+UUIJjq4crkqubLuISiz+qIQjrv+Ji2EC5qRio3Rpen47Pc/xlibe/JKidlBEnDF4ooSGSGvNzZnUK7d2n4S4Y3c5k9E
+  type_code : 31
+  p_codes :
+   -
+     code : |1+
+      
+      gpclMarker is object cRTF dynamic
+      gsMode is string
+      gnColor is int
+     type : 720896
+  procedures :
+   -
+     name : InitializeSearch
+     procedure_id : 1760456517118715696
+     type_code : 15
+     code : |1-
+      // Summary: Initializes the search in the RTF control specified by the DeclareRTFObject procedure.
+      // Syntax:
+      // InitializeSearch ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE InitializeSearch()
+      
+      gpclMarker:InitPointers()
+     type : 458752
+   -
+     name : DeclareRTFObject
+     procedure_id : 1760456517118781232
+     type_code : 15
+     code : |1-
+      //The DeclareRTFObject procedure is used to initialize the RTFSearch component.
+      //
+      //Caution: The DeclareRTFObject procedure must be called before any other operation.
+      //
+      //
+      //Syntax:
+      //DeclareRTFObject (<sNameRTFControl> is string, <sNameEditControl> is string)
+      //
+      //Parameters:
+      //	sNameRTFControl (ANSI string): Character string with quotes
+      //	sNameEditControl (ANSI string): "wnEdit.RTF_CTRL".
+      //Example:
+      //
+      //
+      //// Declares an RTF object for the search
+      //DeclareRTFObject("WinSearch.RTF_CONTENT", "WinSearch.CTRL_WORD")
+      
+      //<Search Control>: Character string with quotes
+      //Name of the edit control used to enter the sought words. The name of the control must be prefixed by the name of the window that contains it, for example: "wnEdit.SEARCH_CTRL".
+      PROCEDURE DeclareRTFObject(LOCAL sNameRTFControl is string, LOCAL sNameEditControl is string)
+      
+      gpclMarker = new cRTF(sNameRTFControl, sNameEditControl)
+     type : 458752
+   -
+     name : StartTheSearch
+     procedure_id : 1760456517118846768
+     type_code : 15
+     code : |1+
+      //The StartTheSearch procedure is used to start the search in the RTF control specified by the DeclareRTFObject procedure.
+      //If at least one word was found, the word is highlighted in the RTF control.
+      //
+      //	Syntax:
+      //[ <Result> = ] StartTheSearch ([<sMode> is string [, <nColorVal> is int]])
+      //
+      //	Parameters:
+      //	sMode (ANSI string): Optional character string with quotes
+      //	Specifies the search mode. This parameter can take one of the following values:
+      //	- "Italic": the words matching the search and written in "Italic" will be returned
+      //	- "Color": the words matching the search and written in "Color" will be returned
+      //	- "Bold": the words matching the search and written in "Bold" will be returned (default value)
+      //	- "Text": no layout criterion will be used for the search
+      //	nColorVal (integer - default value=0): Color used when the search mode is positioned on "Color". If no color must be used, this parameter must be equal to 0 (by default).
+      //	Example:
+      //
+      //	// Declares an RTF object for the search
+      //	DeclareRTFObject("WinSearch.RTF_CONTENT", "WinSearch.CTRL_WORD")
+      //	// Initializes the search
+      //	InitializeSearch()
+      //	// Starts the search
+      //	StartTheSearch("Text")
+      
+      PROCEDURE StartTheSearch(LOCAL sMode is string= <§@3fc4d0232f72a43c0000§>, LOCAL nColorVal is int= 0)
+      
+      gsMode = sMode
+      gnColor = nColorVal
+      
+      RESULT gpclMarker:HighlightFormattedWord(sMode, nColorVal)
+     type : 458752
+   -
+     name : FindNext
+     procedure_id : 1760456517118912304
+     type_code : 15
+     code : |1+
+      //FindNext is used to continue the search in the RTF control specified by the DeclareRTFObject procedure.
+      //
+      //The function searches for the next occurrence of the word in the RTF control
+      //If at least one word was found, the word is highlighted in the RTF control.
+      //
+      //	Syntax:
+      //[ <Result> = ] FindNext ([<sMode> is string [, <nColorVal> is int]])
+      //
+      //	Parameters:
+      //	sMode (ANSI string): Optional character string with quotes
+      //	Specifies the search mode. The last specified mode (StartTheSearch, FindNext) is used if this parameter is not specified.
+      //	This parameter can take one of the following values:
+      //	- "Italic": the words corresponding to the search and written in "Italic" will be returned
+      //	- "Color": the words corresponding to the search and written in "Color" will be returned
+      //	- "Bold": the words corresponding to the search and written in "Bold" will be returned
+      //	- "Text": no layout criterion will be used for the search
+      //	nColorVal (integer): Color used when the search mode is positioned on "Color". If this parameter is not specified, the last color (StartTheSearch, FindNext) will be used.
+      //	Example:
+      //
+      //	// Declares an RTF object for the search
+      //	DeclareRTFObject("WinSearch.RTF_CONTENT", "WinSearch.CTRL_WORD")
+      //	// Initializes the search
+      //	InitializeSearch()
+      //	// Starts the search...
+      //	...
+      //
+      //	FindNext()
+      
+      PROCEDURE FindNext(LOCAL sMode is string = gsMode, LOCAL nColorVal is int= gnColor)
+      
+      gsMode = sMode
+      gnColor = nColorVal
+      
+      RESULT gpclMarker:HighlightNextFormattedWord(sMode, nColorVal) 
+     type : 458752
+   -
+     name : FindPrevious
+     procedure_id : 1760456517118977840
+     type_code : 15
+     code : |1+
+      //FindPrevious is used to continue the search in the RTF control specified by the DeclareRTFObject procedure.
+      //
+      //The function searches for the previous occurrence of the word in the RTF control
+      //If at least one word was found, the word is highlighted in the RTF control.
+      //
+      //	Syntax:
+      //[ <Result> = ] FindPrevious ([<sMode> is string [, <nColorVal> is int]])
+      //
+      //	Parameters:
+      //	sMode (ANSI string): Optional character string with quotes
+      //	Specifies the search mode. The last specified mode (StartTheSearch, FindNext) is used if this parameter is not specified.
+      //	This parameter can take one of the following values:
+      //	- "Italic": the words matching the search and written in "Italic" will be returned
+      //	- "Color": the words matching the search and written in "Color" will be returned
+      //	- "Bold": the words matching the search and written in "Bold" will be returned
+      //	- "Text": no layout criterion will be used for the search
+      //	nColorVal (integer): Color used when the search mode is positioned on "Color". If this parameter is not specified, the last color (StartTheSearch, FindNext) will be used.
+      //	Example:
+      //
+      //	// Declares an RTF object for the search
+      //	DeclareRTFObject("WinSearch.RTF_CONTENT", "WinSearch.CTRL_WORD")
+      //	// Initializes the search
+      //	InitializeSearch()
+      //	// Starts the search...
+      //	...
+      //
+      //	FindPrevious()
+      
+      PROCEDURE FindPrevious(LOCAL sMode is string= gsMode, LOCAL nColorVal is int= gnColor)
+      
+      gsMode = sMode
+      gnColor = nColorVal
+      
+      RESULT gpclMarker:HighlightPreviousFormattedWord(sMode, nColorVal)
+      
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : pRechercheRTF
+resources :
+ string_res :
+  identifier : 0x3fc4d0232f72a43c
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : Text
+     index : 0
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ
